@@ -9,7 +9,7 @@ INSTALL_DIR  := $(HOME)/Library/QuickLook
 
 SOURCES := src/main.c src/GeneratePreview.m
 FRAMEWORKS := -framework Foundation -framework AppKit -framework QuickLook -framework CoreServices
-CFLAGS := -O2 -fobjc-arc -mmacosx-version-min=12.0 -arch arm64 -arch x86_64
+CFLAGS := -O2 -fobjc-arc -mmacosx-version-min=12.0 -arch arm64 -arch x86_64 -Wno-deprecated-declarations
 
 build:
 	@mkdir -p $(EXEC_DIR)

@@ -1,33 +1,41 @@
-# PictClipping Quick Look Extension
+# PictClipping Quick Look
 
-A macOS Quick Look extension that lets you preview `.pictClipping` files by selecting them in Finder and pressing Space.
+A macOS Quick Look plugin for `.pictClipping` files. Select one in Finder, press Space, and see the image.
 
 ## What are pictClipping files?
 
-When you drag an image from an app (e.g. Safari, GraphicConverter) to the Finder, macOS creates a `.pictClipping` file containing the image data in TIFF and/or PICT format. macOS does not provide a built-in Quick Look preview for these files.
+When you drag an image from an app (e.g. Safari, GraphicConverter) to the Finder desktop, macOS creates a `.pictClipping` file containing the image in TIFF and/or PICT format.
 
-## Requirements
+## Install
 
-- macOS 12.0+
-- Xcode Command Line Tools (`xcode-select --install`)
+**Requirements:** macOS 12+ and Xcode Command Line Tools (`xcode-select --install`). No Apple Developer account needed.
 
-No Apple Developer account or code signing required.
-
-## Build & Install
+### Option 1: One-liner
 
 ```bash
+git clone https://github.com/demiurge28/pictclipping-quicklook.git && cd pictclipping-quicklook && ./install.sh
+```
+
+### Option 2: Manual
+
+```bash
+git clone https://github.com/demiurge28/pictclipping-quicklook.git
+cd pictclipping-quicklook
 make install
 ```
 
-This will:
-1. Compile a universal (arm64 + x86_64) `.qlgenerator` bundle
-2. Install it to `~/Library/QuickLook/`
-3. Reset the Quick Look cache
+Both methods compile a universal binary (arm64 + x86_64), install the plugin to `~/Library/QuickLook/`, and reset the Quick Look cache.
 
 ## Uninstall
 
 ```bash
 make uninstall
+```
+
+Or manually:
+
+```bash
+rm -rf ~/Library/QuickLook/PictClippingQL.qlgenerator && qlmanage -r
 ```
 
 ## Usage
@@ -36,10 +44,12 @@ Select any `.pictClipping` file in Finder and press Space.
 
 ## How it works
 
-The extension reads image data from the `.pictClipping` file in two ways:
+The plugin reads image data from `.pictClipping` files two ways:
 
-1. **Data fork** (modern, ~2015+): Parses the binary plist and extracts image data from the `UTI-Data` dictionary, preferring TIFF over PNG/JPEG/PICT.
-2. **Resource fork** (legacy): Reads the `com.apple.ResourceFork` extended attribute and scans for embedded TIFF data.
+1. **Data fork** (modern, ~2015+) — parses the binary plist and extracts image data from `UTI-Data`, preferring TIFF > PNG > JPEG > PICT.
+2. **Resource fork** (legacy) — reads the `com.apple.ResourceFork` extended attribute and scans for embedded TIFF data.
+
+Both previews (Space bar) and Finder thumbnails are generated.
 
 ## Development
 
@@ -48,3 +58,7 @@ make build      # Compile the .qlgenerator bundle
 make clean      # Remove build artifacts
 make reset      # Reset Quick Look cache and restart Finder
 ```
+
+## License
+
+MIT
