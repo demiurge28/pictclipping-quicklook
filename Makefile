@@ -1,33 +1,30 @@
-.PHONY: build install uninstall reset clean
+.PHONY: generate build install uninstall reset clean
 
-BUNDLE_NAME  := PictClippingQL.qlgenerator
-BUILD_DIR    := build
-BUNDLE       := $(BUILD_DIR)/$(BUNDLE_NAME)
-EXEC_DIR     := $(BUNDLE)/Contents/MacOS
-EXEC         := $(EXEC_DIR)/PictClippingQL
-INSTALL_DIR  := $(HOME)/Library/QuickLook
+APP_NAME  := PictClippingViewer.app
+BUILD_DIR := build
 
-SOURCES := src/main.c src/GeneratePreview.m
-FRAMEWORKS := -framework Foundation -framework AppKit -framework QuickLook -framework CoreServices
-CFLAGS := -O2 -fobjc-arc -mmacosx-version-min=12.0 -arch arm64 -arch x86_64 -Wno-deprecated-declarations
+generate:
+	xcodegen generate
 
-build:
-	@mkdir -p $(EXEC_DIR)
-	clang $(CFLAGS) $(FRAMEWORKS) -bundle -o $(EXEC) $(SOURCES)
-	cp src/Info.plist $(BUNDLE)/Contents/Info.plist
-	@echo "Built $(BUNDLE)"
+build: generate
+	xcodebuild -project PictClippingViewer.xcodeproj \
+		-scheme PictClippingViewer \
+		-configuration Release \
+		-derivedDataPath $(BUILD_DIR) \
+		-allowProvisioningUpdates \
+		build
 
 install: build
-	@mkdir -p $(INSTALL_DIR)
-	rm -rf "$(INSTALL_DIR)/$(BUNDLE_NAME)"
-	cp -R $(BUNDLE) "$(INSTALL_DIR)/$(BUNDLE_NAME)"
+	rm -rf /Applications/$(APP_NAME)
+	cp -R $(BUILD_DIR)/Build/Products/Release/$(APP_NAME) /Applications/
 	qlmanage -r 2>/dev/null
+	open /Applications/$(APP_NAME)
 	@echo ""
-	@echo "Installed to $(INSTALL_DIR)/$(BUNDLE_NAME)"
-	@echo "Quick Look cache reset. Select a .pictClipping file and press Space."
+	@echo "Installed to /Applications/$(APP_NAME)"
+	@echo "Enable the extension in System Settings → Privacy & Security → Extensions → Quick Look."
 
 uninstall:
-	rm -rf "$(INSTALL_DIR)/$(BUNDLE_NAME)"
+	rm -rf /Applications/$(APP_NAME)
 	qlmanage -r 2>/dev/null
 	@echo "Uninstalled."
 
@@ -36,4 +33,4 @@ reset:
 	killall Finder 2>/dev/null || true
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) PictClippingViewer.xcodeproj

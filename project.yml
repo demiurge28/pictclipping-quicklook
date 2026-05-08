@@ -1,0 +1,65 @@
+name: PictClippingViewer
+
+options:
+  bundleIdPrefix: co.redscreen.pictclipping
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: RUQCR4H2E6
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+
+targets:
+  PictClippingViewer:
+    type: application
+    platform: macOS
+    sources:
+      - path: PictClippingViewer
+        excludes:
+          - "Info.plist"
+    info:
+      path: PictClippingViewer/Info.plist
+      properties:
+        CFBundleDisplayName: PictClipping Viewer
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "14.0"
+        LSUIElement: true
+        NSPrincipalClass: NSApplication
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.redscreen.pictclipping.viewer
+    dependencies:
+      - target: PictClippingQuickLook
+
+  PictClippingQuickLook:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: PictClippingQuickLook
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
+    info:
+      path: PictClippingQuickLook/Info.plist
+      properties:
+        CFBundleDisplayName: PictClipping Quick Look
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "14.0"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.quicklook.preview
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).PreviewViewController"
+          NSExtensionAttributes:
+            QLSupportedContentTypes:
+              - com.apple.finder.pictclipping
+            QLSupportsSearchableItems: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.redscreen.pictclipping.viewer.quicklook
+        SKIP_INSTALL: YES
+        CODE_SIGN_ENTITLEMENTS: PictClippingQuickLook/PictClippingQuickLook.entitlements
