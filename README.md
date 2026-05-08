@@ -51,6 +51,71 @@ The plugin reads image data from `.pictClipping` files two ways:
 
 Both previews (Space bar) and Finder thumbnails are generated.
 
+## Verify Installation
+
+Check that the plugin is installed:
+
+```bash
+ls ~/Library/QuickLook/PictClippingQL.qlgenerator
+```
+
+Check which generator handles `.pictClipping` files:
+
+```bash
+qlmanage -m | grep pictclipping
+```
+
+Test the preview directly:
+
+```bash
+qlmanage -p /path/to/some/file.pictClipping
+```
+
+## Troubleshooting
+
+### System generator takes priority
+
+macOS ships with a built-in `Clippings.qlgenerator` at `/System/Library/QuickLook/` that also handles `.pictClipping` files. System generators take priority over user-installed ones. If `qlmanage -m | grep pictclipping` shows only the system generator, your previews are coming from Apple's built-in plugin, not this one.
+
+To force this plugin to take priority, install it system-wide (requires admin):
+
+```bash
+sudo cp -R ~/Library/QuickLook/PictClippingQL.qlgenerator /Library/QuickLook/
+qlmanage -r
+```
+
+### Preview not showing after install
+
+1. Reset the Quick Look cache and restart Finder:
+
+```bash
+qlmanage -r && qlmanage -r cache && killall Finder
+```
+
+2. If that doesn't help, log out and back in — macOS caches generator registrations per login session.
+
+3. Verify the plugin binary is valid:
+
+```bash
+file ~/Library/QuickLook/PictClippingQL.qlgenerator/Contents/MacOS/PictClippingQL
+```
+
+This should show `Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit bundle x86_64] [arm64:Mach-O 64-bit bundle arm64]`.
+
+### Quick Look shows a blank or generic icon
+
+The `.pictClipping` file may not contain recognizable image data. Inspect its contents:
+
+```bash
+plutil -p /path/to/file.pictClipping
+```
+
+Look for a `UTI-Data` dictionary with keys like `public.tiff` or `public.png`. If the file only has a `com.apple.ResourceFork` xattr (older format), check that:
+
+```bash
+xattr -l /path/to/file.pictClipping
+```
+
 ## Development
 
 ```bash
