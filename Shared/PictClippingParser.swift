@@ -32,12 +32,28 @@ enum PictClippingParser {
 
     /// Extract an image from a UTI-Data dictionary.
     static func imageFromUTIData(_ utiData: [String: Any]) -> NSImage? {
-        let preferred = ["public.tiff", "public.png", "public.jpeg", "com.apple.pict"]
+        let preferred = [
+            "public.tiff", "public.png", "public.jpeg",
+            "com.adobe.pdf",    // Real Finder clippings often contain PDF
+            "com.apple.pict",   // Legacy PICT (last resort — may report 0x0)
+        ]
         for uti in preferred {
-            if let d = utiData[uti] as? Data, let img = NSImage(data: d) { return img }
+            if let d = utiData[uti] as? Data, let img = NSImage(data: d),
+               img.size.width > 0 && img.size.height > 0 { return img }
         }
+        // Fallback: try any key with valid, non-zero-dimension image data
         for (_, v) in utiData {
-            if let d = v as? Data, let img = NSImage(data: d) { return img }
+            if let d = v as? Data, let img = NSImage(data: d),
+               img.size.width > 0 && img.size.height > 0 { return img }
+        }
+        // Last resort: accept 0x0 images (e.g. PICT) — set a default size
+        for uti in preferred {
+            if let d = utiData[uti] as? Data, let img = NSImage(data: d) {
+                if img.size.width == 0 || img.size.height == 0 {
+                    img.size = NSSize(width: 800, height: 600)
+                }
+                return img
+            }
         }
         return nil
     }

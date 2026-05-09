@@ -3,45 +3,75 @@ import UniformTypeIdentifiers
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowControllers: [ImageWindowController] = []
+    private let logPath = "/tmp/pictclipping-viewer.log"
+
+    private func log(_ msg: String) {
+        let line = "[\(ISO8601DateFormatter().string(from: Date()))] \(msg)\n"
+        if let fh = FileHandle(forWritingAtPath: logPath) {
+            fh.seekToEndOfFile()
+            fh.write(Data(line.utf8))
+            fh.closeFile()
+        } else {
+            FileManager.default.createFile(atPath: logPath, contents: Data(line.utf8))
+        }
+    }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
-        // Must register here (before applicationDidFinishLaunching) to catch
-        // the initial odoc event that arrives during app startup.
+        log("applicationWillFinishLaunching")
+        log("  args: \(ProcessInfo.processInfo.arguments)")
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Check if launched with files via UserDefaults (Finder passes URLs)
-        if let urls = notification.userInfo?[NSApplication.launchUserNotificationUserInfoKey] as? [URL] {
-            for url in urls { openViewer(for: url) }
-        }
+        log("applicationDidFinishLaunching")
+        log("  userInfo keys: \(notification.userInfo?.keys.map { String(describing: $0) } ?? [])")
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
     }
 
-    // Called by AppKit when files are opened via odoc Apple Event
     func application(_ sender: NSApplication, openFile filename: String) -> Bool {
-        openViewer(for: URL(fileURLWithPath: filename))
+        log("openFile: \(filename)")
+        return openViewer(for: URL(fileURLWithPath: filename))
     }
 
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        log("openFiles: \(filenames)")
         for f in filenames { openViewer(for: URL(fileURLWithPath: f)) }
         sender.reply(toOpenOrPrint: .success)
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
+        log("open urls: \(urls.map { $0.path })")
         for url in urls { openViewer(for: url) }
     }
 
     @discardableResult
     private func openViewer(for url: URL) -> Bool {
-        guard let image = PictClippingParser.image(from: url) else { return false }
+        log("openViewer: \(url.path)")
+        log("  exists: \(FileManager.default.fileExists(atPath: url.path))")
+        log("  readable: \(FileManager.default.isReadableFile(atPath: url.path))")
+
+        if let data = try? Data(contentsOf: url) {
+            log("  fileSize: \(data.count) bytes")
+        } else {
+            log("  ERROR: could not read file data")
+        }
+
+        guard let image = PictClippingParser.image(from: url) else {
+            log("  ERROR: parser returned nil")
+            return false
+        }
+
+        log("  image: \(Int(image.size.width))x\(Int(image.size.height))")
+
         let wc = ImageWindowController(image: image, sourceURL: url)
         wc.window?.delegate = self
         windowControllers.append(wc)
         wc.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
+
+        log("  window shown, total windows: \(windowControllers.count)")
         return true
     }
 }
