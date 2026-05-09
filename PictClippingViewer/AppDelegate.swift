@@ -112,24 +112,8 @@ class ImageWindowController: NSWindowController {
     }
 
     private func saveImage(to url: URL) {
-        guard let tiff = image.tiffRepresentation,
-              let rep = NSBitmapImageRep(data: tiff) else { return }
-
-        let ext = url.pathExtension.lowercased()
-        let fileType: NSBitmapImageRep.FileType
-        switch ext {
-        case "jpg", "jpeg": fileType = .jpeg
-        case "tiff", "tif": fileType = .tiff
-        case "bmp":         fileType = .bmp
-        case "gif":         fileType = .gif
-        default:            fileType = .png
-        }
-
-        let props: [NSBitmapImageRep.PropertyKey: Any] = fileType == .jpeg
-            ? [.compressionFactor: 0.9]
-            : [:]
-
-        if let data = rep.representation(using: fileType, properties: props) {
+        let fmt = ImageExporter.format(for: url.pathExtension)
+        if let data = ImageExporter.data(from: image, format: fmt) {
             try? data.write(to: url)
         }
     }
