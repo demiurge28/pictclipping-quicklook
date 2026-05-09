@@ -5,33 +5,23 @@ import UniformTypeIdentifiers
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowControllers: [ImageWindowController] = []
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        // Register handler for open-document Apple Events directly
-        NSAppleEventManager.shared().setEventHandler(
-            self,
-            andSelector: #selector(handleOpenDocuments(_:withReply:)),
-            forEventClass: AEEventClass(kCoreEventClass),
-            andEventID: AEEventID(kAEOpenDocuments)
-        )
-    }
+    func applicationDidFinishLaunching(_ notification: Notification) {}
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
     }
 
-    @objc private func handleOpenDocuments(_ event: NSAppleEventDescriptor, withReply reply: NSAppleEventDescriptor) {
-        guard let directObject = event.paramDescriptor(forKeyword: keyDirectObject) else { return }
-        let count = max(1, directObject.numberOfItems)
-        for i in 1...count {
-            let desc = directObject.atIndex(i) ?? (count == 1 ? directObject : nil)
-            guard let desc = desc else { continue }
-            let urlDesc = desc.coerce(toDescriptorType: typeFileURL)
-            if let urlData = urlDesc?.data, let path = String(data: urlData, encoding: .utf8) {
-                openViewer(for: URL(fileURLWithPath: path))
-            } else if let path = desc.stringValue {
-                openViewer(for: URL(fileURLWithPath: path))
-            }
-        }
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls { openViewer(for: url) }
+    }
+
+    func application(_ sender: NSApplication, openFile filename: String) -> Bool {
+        openViewer(for: URL(fileURLWithPath: filename))
+    }
+
+    func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        for f in filenames { openViewer(for: URL(fileURLWithPath: f)) }
+        sender.reply(toOpenOrPrint: .success)
     }
 
     @discardableResult
