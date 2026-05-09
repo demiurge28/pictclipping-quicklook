@@ -21,6 +21,7 @@ targets:
       - path: PictClippingViewer
         excludes:
           - "Info.plist"
+      - path: Shared
     info:
       path: PictClippingViewer/Info.plist
       properties:
@@ -28,8 +29,21 @@ targets:
         CFBundleShortVersionString: "1.0.0"
         CFBundleVersion: "1"
         LSMinimumSystemVersion: "14.0"
-        LSUIElement: true
         NSPrincipalClass: NSApplication
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Picture Clipping
+            LSHandlerRank: Owner
+            CFBundleTypeRole: Viewer
+            LSItemContentTypes:
+              - com.apple.finder.pictclipping
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: com.apple.finder.pictclipping
+            UTTypeDescription: Picture Clipping
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - pictClipping
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: co.redscreen.pictclipping.viewer
@@ -44,6 +58,7 @@ targets:
         excludes:
           - "Info.plist"
           - "*.entitlements"
+      - path: Shared
     info:
       path: PictClippingQuickLook/Info.plist
       properties:

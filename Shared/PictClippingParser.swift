@@ -3,7 +3,7 @@ import Foundation
 import os.log
 
 private let log = Logger(
-    subsystem: "co.redscreen.pictclipping.viewer.quicklook",
+    subsystem: "co.redscreen.pictclipping.viewer",
     category: "parser"
 )
 
