@@ -78,3 +78,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: co.redscreen.pictclipping.viewer.quicklook
         SKIP_INSTALL: YES
         CODE_SIGN_ENTITLEMENTS: PictClippingQuickLook/PictClippingQuickLook.entitlements
+
+  PictClippingViewerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+      - path: Shared
+    dependencies:
+      - target: PictClippingViewer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.redscreen.pictclipping.viewer.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/PictClippingViewer.app/Contents/MacOS/PictClippingViewer"
+        BUNDLE_LOADER: "$(TEST_HOST)"

@@ -1,4 +1,4 @@
-.PHONY: generate build install uninstall reset clean
+.PHONY: generate build test install uninstall reset clean
 
 APP_NAME  := PictClippingViewer.app
 BUILD_DIR := build
@@ -13,6 +13,13 @@ build: generate
 		-derivedDataPath $(BUILD_DIR) \
 		-allowProvisioningUpdates \
 		build
+
+test: generate
+	xcodebuild -project PictClippingViewer.xcodeproj \
+		-scheme PictClippingViewerTests \
+		-derivedDataPath $(BUILD_DIR) \
+		-allowProvisioningUpdates \
+		test
 
 install: build
 	rm -rf /Applications/$(APP_NAME)

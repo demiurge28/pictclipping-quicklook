@@ -9,6 +9,8 @@ private let log = Logger(
 
 enum PictClippingParser {
 
+    // MARK: - Public
+
     static func image(from url: URL) -> NSImage? {
         if let img = imageFromDataFork(url: url) {
             log.info("Loaded from data fork: \(url.lastPathComponent, privacy: .public)")
@@ -22,17 +24,14 @@ enum PictClippingParser {
         return nil
     }
 
-    // MARK: - Data fork (binary plist)
+    /// Extract an image from a plist dictionary (the raw file data parsed as bplist).
+    static func imageFromPlist(_ plist: [String: Any]) -> NSImage? {
+        guard let utiData = plist["UTI-Data"] as? [String: Any] else { return nil }
+        return imageFromUTIData(utiData)
+    }
 
-    private static func imageFromDataFork(url: URL) -> NSImage? {
-        guard let data = try? Data(contentsOf: url),
-              let plist = try? PropertyListSerialization.propertyList(
-                  from: data, options: [], format: nil
-              ) as? [String: Any],
-              let utiData = plist["UTI-Data"] as? [String: Any] else {
-            return nil
-        }
-
+    /// Extract an image from a UTI-Data dictionary.
+    static func imageFromUTIData(_ utiData: [String: Any]) -> NSImage? {
         let preferred = ["public.tiff", "public.png", "public.jpeg", "com.apple.pict"]
         for uti in preferred {
             if let d = utiData[uti] as? Data, let img = NSImage(data: d) { return img }
@@ -41,6 +40,29 @@ enum PictClippingParser {
             if let d = v as? Data, let img = NSImage(data: d) { return img }
         }
         return nil
+    }
+
+    /// Scan raw data for a TIFF header and return its range.
+    static func findTIFF(in data: Data) -> Range<Data.Index>? {
+        let bytes = [UInt8](data)
+        for i in 0..<max(0, bytes.count - 4) {
+            let le = bytes[i] == 0x49 && bytes[i+1] == 0x49 && bytes[i+2] == 0x2A && bytes[i+3] == 0x00
+            let be = bytes[i] == 0x4D && bytes[i+1] == 0x4D && bytes[i+2] == 0x00 && bytes[i+3] == 0x2A
+            if le || be { return i..<data.count }
+        }
+        return nil
+    }
+
+    // MARK: - Data fork (binary plist)
+
+    private static func imageFromDataFork(url: URL) -> NSImage? {
+        guard let data = try? Data(contentsOf: url),
+              let plist = try? PropertyListSerialization.propertyList(
+                  from: data, options: [], format: nil
+              ) as? [String: Any] else {
+            return nil
+        }
+        return imageFromPlist(plist)
     }
 
     // MARK: - Resource fork (xattr)
@@ -63,15 +85,5 @@ enum PictClippingParser {
         let read = getxattr(path, name, &buf, size, 0, 0)
         guard read == size else { return nil }
         return Data(buf)
-    }
-
-    private static func findTIFF(in data: Data) -> Range<Data.Index>? {
-        let bytes = [UInt8](data)
-        for i in 0..<max(0, bytes.count - 4) {
-            let le = bytes[i] == 0x49 && bytes[i+1] == 0x49 && bytes[i+2] == 0x2A && bytes[i+3] == 0x00
-            let be = bytes[i] == 0x4D && bytes[i+1] == 0x4D && bytes[i+2] == 0x00 && bytes[i+3] == 0x2A
-            if le || be { return i..<data.count }
-        }
-        return nil
     }
 }
