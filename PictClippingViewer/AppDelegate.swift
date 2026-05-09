@@ -1,20 +1,26 @@
 import Cocoa
 import UniformTypeIdentifiers
 
-@main
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowControllers: [ImageWindowController] = []
 
-    func applicationDidFinishLaunching(_ notification: Notification) {}
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        // Must register here (before applicationDidFinishLaunching) to catch
+        // the initial odoc event that arrives during app startup.
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Check if launched with files via UserDefaults (Finder passes URLs)
+        if let urls = notification.userInfo?[NSApplication.launchUserNotificationUserInfoKey] as? [URL] {
+            for url in urls { openViewer(for: url) }
+        }
+    }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
     }
 
-    func application(_ application: NSApplication, open urls: [URL]) {
-        for url in urls { openViewer(for: url) }
-    }
-
+    // Called by AppKit when files are opened via odoc Apple Event
     func application(_ sender: NSApplication, openFile filename: String) -> Bool {
         openViewer(for: URL(fileURLWithPath: filename))
     }
@@ -22,6 +28,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
         for f in filenames { openViewer(for: URL(fileURLWithPath: f)) }
         sender.reply(toOpenOrPrint: .success)
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls { openViewer(for: url) }
     }
 
     @discardableResult
