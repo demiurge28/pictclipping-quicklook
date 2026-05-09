@@ -3,6 +3,8 @@ import UniformTypeIdentifiers
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private var windowControllers: [ImageWindowController] = []
+
     func applicationDidFinishLaunching(_ notification: Notification) {}
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -21,8 +23,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func openViewer(for url: URL) -> Bool {
         guard let image = PictClippingParser.image(from: url) else { return false }
         let wc = ImageWindowController(image: image, sourceURL: url)
+        wc.window?.delegate = self
+        windowControllers.append(wc)
         wc.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
         return true
+    }
+}
+
+extension AppDelegate: NSWindowDelegate {
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        windowControllers.removeAll { $0.window === window }
     }
 }
 
