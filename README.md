@@ -38,14 +38,9 @@ make install
 
 This generates the Xcode project, builds a Release binary, and copies `PictClippingViewer.app` to `/Applications`.
 
-## Set as Default App
+## Usage
 
-To open `.pictClipping` files with a double-click:
-
-1. Right-click any `.pictClipping` file in Finder
-2. Click **Get Info**
-3. Under **Open With**, select **PictClippingViewer**
-4. Click **Change All…** to apply to all `.pictClipping` files
+Right-click a `.pictClipping` file in Finder → **Open With** → **PictClippingViewer**. The image opens in a resizable window.
 
 Or from the terminal:
 
@@ -53,9 +48,7 @@ Or from the terminal:
 open -a PictClippingViewer /path/to/file.pictClipping
 ```
 
-## Usage
-
-Double-click a `.pictClipping` file (or drag it onto the app icon). The image opens in a resizable window.
+> **Note:** Finder has a built-in handler for `.pictClipping` files that overrides the default app setting on double-click. Use right-click → Open With, drag onto the app icon, or the terminal command above.
 
 **Export:** Click the export button (↑) in the toolbar to save as:
 - PNG
@@ -68,7 +61,7 @@ Double-click a `.pictClipping` file (or drag it onto the app icon). The image op
 
 The app reads image data from `.pictClipping` files two ways:
 
-1. **Data fork** (modern, ~2015+) — parses the binary plist and extracts image data from `UTI-Data`, preferring TIFF > PNG > JPEG > PICT.
+1. **Data fork** (modern, ~2015+) — parses the binary plist and extracts image data from `UTI-Data`, preferring TIFF > PNG > JPEG > PDF > PICT. Vector formats (PDF, PICT) are rasterized to bitmaps for display.
 2. **Resource fork** (legacy) — reads the `com.apple.ResourceFork` extended attribute and scans for embedded TIFF data.
 
 ## Uninstall
