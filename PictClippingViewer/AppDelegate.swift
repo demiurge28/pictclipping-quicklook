@@ -90,13 +90,15 @@ class ImageWindowController: NSWindowController {
     private let sourceURL: URL
 
     init(image: NSImage, sourceURL: URL) {
-        self.image = image
+        // Rasterize vector images (e.g. PDF) so NSImageView renders them
+        let displayImage = ImageWindowController.rasterize(image)
+        self.image = displayImage
         self.sourceURL = sourceURL
 
-        let size = image.size
+        let size = displayImage.size
         let maxDim: CGFloat = 800
         let scale = min(maxDim / max(size.width, 1), maxDim / max(size.height, 1), 1.0)
-        let winSize = NSSize(width: size.width * scale, height: size.height * scale)
+        let winSize = NSSize(width: max(size.width * scale, 200), height: max(size.height * scale, 200))
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: winSize),
@@ -107,20 +109,50 @@ class ImageWindowController: NSWindowController {
         window.title = sourceURL.lastPathComponent
         window.center()
         window.isReleasedWhenClosed = false
+        window.minSize = NSSize(width: 200, height: 200)
 
         super.init(window: window)
 
-        let imageView = NSImageView(frame: window.contentView!.bounds)
-        imageView.image = image
-        imageView.imageScaling = .scaleProportionallyUpOrDown
-        imageView.autoresizingMask = [.width, .height]
-        window.contentView?.addSubview(imageView)
-
-        // Toolbar with export button
+        // Toolbar after super.init (delegate is self)
         let toolbar = NSToolbar(identifier: "ViewerToolbar")
         toolbar.delegate = self
         toolbar.displayMode = .iconOnly
         window.toolbar = toolbar
+
+        // Use Auto Layout for reliable sizing
+        let imageView = NSImageView()
+        imageView.image = displayImage
+        imageView.imageScaling = .scaleProportionallyUpOrDown
+        imageView.imageAlignment = .alignCenter
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        window.contentView?.addSubview(imageView)
+
+        if let contentView = window.contentView {
+            NSLayoutConstraint.activate([
+                imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            ])
+        }
+    }
+
+    /// Rasterize an NSImage to a bitmap. PDF/PICT images are vector and may
+    /// not render in NSImageView without rasterization.
+    private static func rasterize(_ image: NSImage) -> NSImage {
+        let size = image.size
+        guard size.width > 0 && size.height > 0 else { return image }
+
+        // Check if already a bitmap
+        if image.representations.contains(where: { $0 is NSBitmapImageRep }) {
+            return image
+        }
+
+        let bitmapImage = NSImage(size: size)
+        bitmapImage.lockFocus()
+        image.draw(in: NSRect(origin: .zero, size: size))
+        bitmapImage.unlockFocus()
+        return bitmapImage
     }
 
     required init?(coder: NSCoder) { fatalError() }
