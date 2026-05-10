@@ -4,6 +4,7 @@ APP_NAME  := PictClippingViewer.app
 BUILD_DIR := build
 
 generate:
+	@command -v xcodegen >/dev/null 2>&1 || { echo "Installing xcodegen..."; brew install xcodegen; }
 	xcodegen generate
 
 build: generate
