@@ -11,32 +11,18 @@ When you drag an image from an app (e.g. Safari, GraphicConverter) to the Finder
 - macOS 14+
 - Xcode 15+
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
-- An Apple ID (free) signed into Xcode
 
 ## Build & Install
-
-1. Clone the repo:
 
 ```bash
 git clone https://github.com/demiurge28/pictclipping-quicklook.git
 cd pictclipping-quicklook
-```
-
-2. Set your development team in `project.yml`. Find your team ID with:
-
-```bash
-security find-certificate -c "Apple Development" -p | openssl x509 -noout -subject | grep -o 'OU=[^,]*' | cut -d= -f2
-```
-
-Replace the `DEVELOPMENT_TEAM` value in `project.yml` with your team ID.
-
-3. Build and install:
-
-```bash
 make install
 ```
 
-This generates the Xcode project, builds a Release binary, and copies `PictClippingViewer.app` to `/Applications`.
+This generates the Xcode project, builds a Release binary, copies `PictClippingViewer.app` to `/Applications`, and registers the Quick Look extension.
+
+No Apple Developer account is required — the app is ad-hoc signed to run locally.
 
 ## Usage
 
@@ -85,7 +71,7 @@ make clean      # Remove build artifacts and .xcodeproj
 make reset      # Reset Quick Look cache and restart Finder
 ```
 
-The project also includes a Quick Look Preview Extension. macOS currently does not invoke third-party extensions for `.pictClipping` files because the system's built-in `Clippings.qlgenerator` claims this UTI. The extension is included for forward compatibility.
+The project includes a Quick Look Preview Extension that provides native previews for `.pictClipping` files in Finder (press Space). After installing, enable the extension in **System Settings → Privacy & Security → Extensions → Quick Look**.
 
 ## License
 

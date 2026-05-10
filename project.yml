@@ -9,8 +9,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: RUQCR4H2E6
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
     MACOSX_DEPLOYMENT_TARGET: "14.0"
 
 targets:
@@ -77,6 +77,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: co.redscreen.pictclipping.viewer.quicklook
         SKIP_INSTALL: YES
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
         CODE_SIGN_ENTITLEMENTS: PictClippingQuickLook/PictClippingQuickLook.entitlements
 
   PictClippingViewerTests:

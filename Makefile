@@ -11,14 +11,12 @@ build: generate
 		-scheme PictClippingViewer \
 		-configuration Release \
 		-derivedDataPath $(BUILD_DIR) \
-		-allowProvisioningUpdates \
 		build
 
 test: generate
 	xcodebuild -project PictClippingViewer.xcodeproj \
 		-scheme PictClippingViewerTests \
 		-derivedDataPath $(BUILD_DIR) \
-		-allowProvisioningUpdates \
 		test
 
 install: build
